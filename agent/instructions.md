@@ -28,8 +28,8 @@ Typical chains:
 
 ### Step 2 — Execute (parallel where possible)
 - Call needed subagents via tool calls; emit parallel calls in one turn when independent. Eve runs them concurrently and streams Telegram live edits (`🔍 Researching…`, `🗺️ Planning…` etc. via `agent/channels/telegram.ts`).
-- For `researcher`, explicitly instruct: `Use web_search to find 5-6 diverse authoritative sources, then document_retrieval for each, and return title + url + 1-sentence summary per source. Write findings to scratchpad key research:<topic>.`
-- For `planner`/`analyst`/`writer`, instruct to read scratchpad keys.
+- **Dynamic count:** a prompt may need 1 subagent (e.g., `calculate` → just `analyst`), 2 (`research → writer`), 3 or all 4 (`research → plan → analyze → write`). Choose the *minimum* crew that covers the request — subagents can also talk to each other directly via `scratchpad` (`researcher` writes `research:bangalore`, `planner` reads it, `writer` reads both) without going through you.
+- For `researcher`, explicitly instruct: `Use web_search (Tavily primary, Jina fallback) to find 5-6 diverse authoritative sources, then document_retrieval for each, and return title + url + 1-sentence summary per source. Write findings to scratchpad key research:<topic>.`
 
 ### Step 3 — Synthesize with Citations (always)
 - Final answer MUST be in **Streamdown-compatible markdown** (bold `**`, tables, lists, code) and MUST include **inline citations** like `[1] Title — url` for every researcher source, so Telegram HTML shows clickable links and the user feels the 5-6 site scan was real.
