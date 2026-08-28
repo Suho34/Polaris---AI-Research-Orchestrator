@@ -22,10 +22,10 @@ function clearProgress(state: Record<string, unknown>) {
 
 function formatSubagentStatus(actions: readonly { kind: string; subagentName?: string; toolName?: string }[]): string | null {
   const labels: Record<string, string> = {
-    researcher: "🔍 Researching… searching web & retrieving documents",
-    planner: "🗺️ Planning… breaking down steps",
+    researcher: "🔍 Researching… scanning 5-6 sources (titles + URLs live)",
+    planner: "🗺️ Planning… breaking into steps",
     analyst: "📊 Analyzing data & calculations",
-    writer: "✍️ Writing report… synthesizing findings",
+    writer: "✍️ Writing report… synthesizing with citations",
   };
   const parts: string[] = [];
   for (const a of actions) {
@@ -94,8 +94,8 @@ export default telegramChannel({
     async "turn.started"(_event, channel) {
       await channel.telegram.startTyping().catch(() => {});
       try {
-        const res = await sendHtml(channel as unknown as { telegram: { chatId: string; request: (m: string, b: Record<string, unknown>) => Promise<unknown>; post: (m: string) => Promise<{ id: string }> } }, "<b>⏳ Polaris is working on your request…</b>\n<i>Orchestrator will delegate to specialists as needed.</i>");
-        if (res?.id) setProgressId(channel.state as unknown as Record<string, unknown>, res.id, "⏳ Started");
+        const res = await sendHtml(channel as unknown as { telegram: { chatId: string; request: (m: string, b: Record<string, unknown>) => Promise<unknown>; post: (m: string) => Promise<{ id: string }> } }, "<b>✨ Enhancing your request…</b>\n<i>Polaris is rewriting your prompt with context and deciding which specialists to call.</i>");
+        if (res?.id) setProgressId(channel.state as unknown as Record<string, unknown>, res.id, "✨ Enhancing");
       } catch {}
     },
 
