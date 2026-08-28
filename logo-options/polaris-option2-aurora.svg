@@ -1,0 +1,21 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1"/>
+      <stop offset="50%" stop-color="#06B6D4"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#g)"/>
+  <g transform="translate(256 240)" filter="url(#glow)">
+    <path d="M0 -110 L10 -10 L110 0 L10 10 L0 110 L-10 10 L-110 0 L-10 -10 Z" fill="white" opacity="0.95"/>
+    <path d="M0 -70 L6 -6 L70 0 L6 6 L0 70 L-6 6 L-70 0 L-6 -6 Z" fill="white" opacity="0.45"/>
+    <circle r="16" fill="white"/>
+  </g>
+  <text x="256" y="410" text-anchor="middle" font-family="Inter, SF Pro, sans-serif" font-size="42" font-weight="800" letter-spacing="2" fill="white">Polaris</text>
+  <text x="256" y="436" text-anchor="middle" font-family="Inter, SF Pro, sans-serif" font-size="18" font-weight="500" letter-spacing="8" fill="white" opacity="0.85">ORCHESTRATOR</text>
+</svg>

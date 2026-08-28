@@ -1,0 +1,13 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="112" fill="#FFFFFF"/>
+  <rect x="12" y="12" width="488" height="488" rx="100" fill="none" stroke="#0B1426" stroke-width="3" opacity="0.08"/>
+  <circle cx="256" cy="212" r="112" fill="#0B1426"/>
+  <g transform="translate(256 212)">
+    <text x="0" y="38" text-anchor="middle" font-family="Inter, SF Pro, sans-serif" font-size="140" font-weight="800" fill="white">P</text>
+    <g transform="translate(52 -68)">
+      <path d="M0 -22 L4 -4 L22 0 L4 4 L0 22 L-4 4 L-22 0 L-4 -4 Z" fill="#38BDF8"/>
+    </g>
+  </g>
+  <text x="256" y="372" text-anchor="middle" font-family="Inter, SF Pro, sans-serif" font-size="36" font-weight="700" letter-spacing="3" fill="#0B1426">POLARIS</text>
+  <text x="256" y="400" text-anchor="middle" font-family="Inter, SF Pro, sans-serif" font-size="16" font-weight="600" letter-spacing="6" fill="#64748B">GETPOLARIS_BOT</text>
+</svg>

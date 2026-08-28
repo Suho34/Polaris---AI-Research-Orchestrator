@@ -1,0 +1,18 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="112" fill="#0B1426"/>
+  <!-- subtle radial -->
+  <circle cx="256" cy="256" r="200" fill="none" stroke="white" stroke-opacity="0.06" stroke-width="1"/>
+  <circle cx="256" cy="256" r="140" fill="none" stroke="white" stroke-opacity="0.04" stroke-width="1"/>
+  <!-- North Star - 8 point -->
+  <g transform="translate(256 256)">
+    <!-- vertical/horizontal long rays -->
+    <path d="M0 -140 L14 -14 L140 0 L14 14 L0 140 L-14 14 L-140 0 L-14 -14 Z" fill="white"/>
+    <!-- diagonal short rays -->
+    <path d="M0 -90 L8 -8 L90 0 L8 8 L0 90 L-8 8 L-90 0 L-8 -8 Z" fill="white" opacity="0.55"/>
+    <!-- center dot -->
+    <circle r="18" fill="#0B1426"/>
+    <circle r="8" fill="white"/>
+  </g>
+  <!-- bottom text -->
+  <text x="256" y="440" text-anchor="middle" font-family="Inter, SF Pro, sans-serif" font-size="28" font-weight="600" letter-spacing="6" fill="white" opacity="0.92">POLARIS</text>
+</svg>
