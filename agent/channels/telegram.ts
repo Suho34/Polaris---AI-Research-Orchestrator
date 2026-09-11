@@ -6,8 +6,6 @@ import {
   safeTruncateMarkdown,
 } from "../lib/telegram-format.js";
 import {
-  checkTelegramRateLimit,
-  isPublicTrialEnabled,
   isTelegramUserAllowed,
 } from "../lib/telegram-guard.js";
 import { log } from "../lib/log.js";
@@ -190,23 +188,10 @@ async function guardedOnMessage(
   const userId = message.from?.id;
 
   if (!isTelegramUserAllowed(userId)) {
-    const notice = isPublicTrialEnabled()
-      ? "⛔ The public trial is not available right now."
-      : "⛔ This bot is private. Your user id is not on the allowlist.";
-    await ctx.telegram.post(notice).catch(() => {});
-    log.warn("telegram-guard", "blocked unauthorized user", { userId });
-    return null;
-  }
-
-  const rl = await checkTelegramRateLimit(String(userId), message.chat.id);
-  if (!rl.allowed) {
     await ctx.telegram
-      .post(`⏳ ${rl.notice ?? "Slow down, then try again."}`)
+      .post("⛔ This bot is private. Your user id is not on the allowlist.")
       .catch(() => {});
-    log.warn("telegram-guard", "rate-limited chat", {
-      chatId: message.chat.id,
-      userId,
-    });
+    log.warn("telegram-guard", "blocked unauthorized user", { userId });
     return null;
   }
 

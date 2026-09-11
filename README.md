@@ -38,7 +38,7 @@ Polaris is useful for:
 - Automatic fallback and retry for provider limits
 - Telegram progress messages that update throughout a workflow
 - SSRF and response-size protections for document retrieval
-- Public production access with a shared daily quota, or an optional user allowlist
+- Public production access, or an optional user allowlist
 
 ## Architecture
 
@@ -51,7 +51,7 @@ The main boundaries are:
 | Layer        | Responsibility                                       | Location                                          |
 | ------------ | ---------------------------------------------------- | ------------------------------------------------- |
 | Channels     | Telegram webhook and Eve local/deployment access     | `agent/channels/`                                 |
-| Abuse guard  | Allowlist, per-user limits, and public daily budget  | `agent/lib/telegram-guard.ts`                     |
+| Abuse guard  | Optional Telegram user allowlist                   | `agent/lib/telegram-guard.ts`                     |
 | Orchestrator | Clarification, delegation, validation, and synthesis | `agent/agent.ts`, `agent/instructions.md`         |
 | LLM gateway  | Capacity reservation, fallback routing, and retries  | `agent/lib/`                                      |
 | Specialists  | Research, planning, analysis, and writing            | `agent/subagents/`                                |
@@ -117,15 +117,7 @@ npm run build
 
 ### Public production access
 
-Production access is public when `TELEGRAM_ALLOWED_USER_IDS` is empty. Every request consumes the shared daily public quota and the per-user limits:
-
-```bash
-TELEGRAM_PUBLIC_RPD_LIMIT=100
-TELEGRAM_USER_RPM_LIMIT=10
-TELEGRAM_USER_RPD_LIMIT=200
-```
-
-Upstash Redis is required in production so the shared quota survives serverless cold starts. Rate limiting fails closed if Redis is unavailable.
+Production access is public when `TELEGRAM_ALLOWED_USER_IDS` is empty. Telegram messages are not blocked by an application-level request quota.
 
 ### Optional private allowlist
 
@@ -135,9 +127,7 @@ To restrict the bot to selected users, set a comma-separated list of Telegram nu
 TELEGRAM_ALLOWED_USER_IDS=123456789,987654321
 ```
 
-When an allowlist is configured, only those users can access the bot. The per-user limits still apply.
-
-`TELEGRAM_PUBLIC_TRIAL_ENABLED` and the legacy `TELEGRAM_TRIAL_RPD_LIMIT` remain supported as compatibility aliases for the public daily budget.
+When an allowlist is configured, only those users can access the bot.
 
 ### Webhook setup
 
@@ -174,11 +164,6 @@ The gateway estimates prompt and tool tokens, reserves provider capacity, routes
 | `TELEGRAM_BOT_TOKEN`            | Telegram      | Bot token                                                    |
 | `TELEGRAM_WEBHOOK_SECRET_TOKEN` | Telegram      | Secret used by the webhook                                   |
 | `TELEGRAM_ALLOWED_USER_IDS`     | Optional      | Comma-separated Telegram user IDs; empty means public access |
-| `TELEGRAM_PUBLIC_RPD_LIMIT`     | Optional      | Shared public requests per day; default `100`                |
-| `TELEGRAM_PUBLIC_TRIAL_ENABLED` | Compatibility | Legacy public-access flag                                    |
-| `TELEGRAM_USER_RPM_LIMIT`       | Optional      | Per-user requests per minute; default `10`                   |
-| `TELEGRAM_USER_RPD_LIMIT`       | Optional      | Per-user requests per day; default `200`                     |
-| `TELEGRAM_TRIAL_RPD_LIMIT`      | Compatibility | Legacy alias for `TELEGRAM_PUBLIC_RPD_LIMIT`                 |
 | `UPSTASH_REDIS_REST_URL`        | Production    | Upstash REST endpoint                                        |
 | `UPSTASH_REDIS_REST_TOKEN`      | Production    | Upstash REST token                                           |
 | `TAVILY_API_KEY`                | Optional      | Primary web-search provider                                  |
@@ -213,7 +198,7 @@ eve link --non-interactive --project <vercel-project>
 eve deploy --non-interactive --yes --project <vercel-project>
 ```
 
-Before production deployment, configure the required provider keys, Telegram webhook values, and Upstash Redis. Public access is protected by the shared daily and per-user quotas; use the allowlist when the bot should be private.
+Before production deployment, configure the required provider keys and Telegram webhook values. Use the allowlist when the bot should be private.
 
 ## Project structure
 
@@ -240,8 +225,7 @@ logo-options/              Logo candidates
 | ----------------------------------- | --------------------------------------------------------------------------------- |
 | `404` from `GET /eve/v1/telegram`   | Expected; the Telegram webhook is POST-only                                       |
 | Telegram webhook returns `401`      | Secret token does not match `TELEGRAM_WEBHOOK_SECRET_TOKEN`                       |
-| Production users are rejected       | Check the shared public daily quota, per-user limits, or configured allowlist     |
-| Public requests are rejected        | Configure Upstash Redis and confirm the daily quota is not exhausted              |
+| Production users are rejected       | Check whether their Telegram ID is included in `TELEGRAM_ALLOWED_USER_IDS`        |
 | Model calls return `429`            | Provider capacity is exhausted; the gateway retries and falls back where possible |
 | Scratchpad state disappears locally | Redis is not configured, so the development fallback is in-memory                 |
 

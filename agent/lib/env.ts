@@ -26,14 +26,8 @@ const envSchema = z.object({
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_WEBHOOK_SECRET_TOKEN: z.string().optional(),
 
-  // Optional: empty means public access protected by shared rate limits.
+  // Optional: empty means public access.
   TELEGRAM_ALLOWED_USER_IDS: z.string().optional(),
-  TELEGRAM_PUBLIC_TRIAL_ENABLED: z.string().optional(),
-  TELEGRAM_PUBLIC_RPD_LIMIT: z.string().optional(),
-  TELEGRAM_USER_RPM_LIMIT: z.string().optional(),
-  TELEGRAM_USER_RPD_LIMIT: z.string().optional(),
-  TELEGRAM_TRIAL_RPM_LIMIT: z.string().optional(),
-  TELEGRAM_TRIAL_RPD_LIMIT: z.string().optional(),
 
   // Optional: Gateway limits
   GROQ_RPM_LIMIT: z.string().optional(),
