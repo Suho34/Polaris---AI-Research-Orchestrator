@@ -39,7 +39,7 @@ function retryDelayFor(
   const waitMs = Math.max(RATE_LIMIT_RETRY_INTERVAL_MS, providerDelay);
   manager.getModelTracker(targetModel.modelId).setCooldown(waitMs);
   gatewayLog(
-    `${targetModel.modelId} hit rate limit (429). Waiting ${Math.ceil(waitMs / 1000)}s before retry attempt ${attempt + 1}/${MAX_RATE_LIMIT_RETRIES}...`
+    `${targetModel.modelId} hit rate limit (429). Waiting ${Math.ceil(waitMs / 1000)}s before retry attempt ${attempt + 1}/${MAX_RATE_LIMIT_RETRIES}...`,
   );
   return waitMs;
 }
@@ -51,7 +51,11 @@ async function generateWithFallback(
   estimatedTokens: number,
 ): Promise<LanguageModelV4GenerateResult> {
   const fallbackRelease = (
-    await manager.acquireCapacityForModels(fallbackModel, fallbackModel, estimatedTokens)
+    await manager.acquireCapacityForModels(
+      fallbackModel,
+      fallbackModel,
+      estimatedTokens,
+    )
   ).release;
   try {
     const result = await fallbackModel.doGenerate(options);
@@ -71,7 +75,7 @@ async function generateWithFallback(
 export function createRoutedLanguageModel(
   primaryModel: LanguageModelV4,
   fallbackModel: LanguageModelV4,
-  customLimits?: Partial<CapacityLimits>
+  customLimits?: Partial<CapacityLimits>,
 ): LanguageModelV4 {
   const manager = LLMBudgetManager.getInstance();
   const config = getGatewayConfig();
@@ -86,18 +90,30 @@ export function createRoutedLanguageModel(
     modelId: primaryModel.modelId,
     supportedUrls: primaryModel.supportedUrls,
 
-    async doGenerate(options: LanguageModelV4CallOptions): Promise<LanguageModelV4GenerateResult> {
-      const estimatedTokens = estimateCallTokens(options, config.defaultOutputReservation);
+    async doGenerate(
+      options: LanguageModelV4CallOptions,
+    ): Promise<LanguageModelV4GenerateResult> {
+      const estimatedTokens = estimateCallTokens(
+        options,
+        config.defaultOutputReservation,
+      );
 
       for (let attempt = 0; attempt <= MAX_RATE_LIMIT_RETRIES; attempt++) {
-        const { route, release } = await manager.acquireCapacityForModels(primaryModel, fallbackModel, estimatedTokens);
+        const { route, release } = await manager.acquireCapacityForModels(
+          primaryModel,
+          fallbackModel,
+          estimatedTokens,
+        );
         const targetModel = route === "fallback" ? fallbackModel : primaryModel;
 
         try {
           const result = await targetModel.doGenerate(options);
-          const totalTokens = extractTotalTokens(result.usage) ?? estimatedTokens;
+          const totalTokens =
+            extractTotalTokens(result.usage) ?? estimatedTokens;
           release(totalTokens);
-          gatewayLog(`${targetModel.modelId} generate ok (route=${route}, tokens=${totalTokens}, est=${estimatedTokens})`);
+          gatewayLog(
+            `${targetModel.modelId} generate ok (route=${route}, tokens=${totalTokens}, est=${estimatedTokens})`,
+          );
           return result;
         } catch (err: unknown) {
           release(0);
@@ -106,14 +122,23 @@ export function createRoutedLanguageModel(
           // ceiling. Retrying with the same model won't help — force immediate fallback.
           if (isTpmExceededError(err) && targetModel === primaryModel) {
             gatewayLog(
-              `Primary ${primaryModel.modelId} rejected prompt as too large (TPM exceeded). Forcing fallback to ${fallbackModel.modelId}.`
+              `Primary ${primaryModel.modelId} rejected prompt as too large (TPM exceeded). Forcing fallback to ${fallbackModel.modelId}.`,
             );
-            const fallbackRelease = (await manager.acquireCapacityForModels(primaryModel, fallbackModel, estimatedTokens)).release;
+            const fallbackRelease = (
+              await manager.acquireCapacityForModels(
+                primaryModel,
+                fallbackModel,
+                estimatedTokens,
+              )
+            ).release;
             try {
               const fallbackResult = await fallbackModel.doGenerate(options);
-              const fallbackTokens = extractTotalTokens(fallbackResult.usage) ?? estimatedTokens;
+              const fallbackTokens =
+                extractTotalTokens(fallbackResult.usage) ?? estimatedTokens;
               fallbackRelease(fallbackTokens);
-              gatewayLog(`${fallbackModel.modelId} generate ok (forced fallback, tokens=${fallbackTokens})`);
+              gatewayLog(
+                `${fallbackModel.modelId} generate ok (forced fallback, tokens=${fallbackTokens})`,
+              );
               return fallbackResult;
             } catch (fallbackErr: unknown) {
               fallbackRelease(0);
@@ -125,7 +150,12 @@ export function createRoutedLanguageModel(
             gatewayLog(
               `Primary ${primaryModel.modelId} quota/rate limit exhausted. Switching to ${fallbackModel.modelId}.`,
             );
-            return generateWithFallback(fallbackModel, options, manager, estimatedTokens);
+            return generateWithFallback(
+              fallbackModel,
+              options,
+              manager,
+              estimatedTokens,
+            );
           }
 
           const waitMs = retryDelayFor(manager, targetModel, err, attempt);
@@ -138,15 +168,24 @@ export function createRoutedLanguageModel(
       }
 
       throw new Error(
-        `[LLM Gateway] Exceeded ${MAX_RATE_LIMIT_RETRIES} rate limit retry attempts for ${primaryModel.modelId}.`
+        `[LLM Gateway] Exceeded ${MAX_RATE_LIMIT_RETRIES} rate limit retry attempts for ${primaryModel.modelId}.`,
       );
     },
 
-    async doStream(options: LanguageModelV4CallOptions): Promise<LanguageModelV4StreamResult> {
-      const estimatedTokens = estimateCallTokens(options, config.defaultOutputReservation);
+    async doStream(
+      options: LanguageModelV4CallOptions,
+    ): Promise<LanguageModelV4StreamResult> {
+      const estimatedTokens = estimateCallTokens(
+        options,
+        config.defaultOutputReservation,
+      );
 
       for (let attempt = 0; attempt <= MAX_RATE_LIMIT_RETRIES; attempt++) {
-        const { route, release } = await manager.acquireCapacityForModels(primaryModel, fallbackModel, estimatedTokens);
+        const { route, release } = await manager.acquireCapacityForModels(
+          primaryModel,
+          fallbackModel,
+          estimatedTokens,
+        );
         const targetModel = route === "fallback" ? fallbackModel : primaryModel;
 
         try {
@@ -154,7 +193,9 @@ export function createRoutedLanguageModel(
 
           let actualTokens = estimatedTokens;
           let releaseDone = false;
-          let underlyingReader: ReadableStreamDefaultReader<LanguageModelV4StreamPart> | undefined;
+          let underlyingReader:
+            | ReadableStreamDefaultReader<LanguageModelV4StreamPart>
+            | undefined;
 
           // Reconcile exact token usage on stream end; always release on cancel.
           const finishRelease = (tokens: number) => {
@@ -175,7 +216,8 @@ export function createRoutedLanguageModel(
                     break;
                   }
                   if (value.type === "finish" && value.usage) {
-                    actualTokens = extractTotalTokens(value.usage) ?? estimatedTokens;
+                    actualTokens =
+                      extractTotalTokens(value.usage) ?? estimatedTokens;
                   }
                   controller.enqueue(value);
                 }
@@ -205,15 +247,23 @@ export function createRoutedLanguageModel(
           // TPM-exceeded (413 "request too large"): force immediate fallback.
           if (isTpmExceededError(err) && targetModel === primaryModel) {
             gatewayLog(
-              `Primary ${primaryModel.modelId} rejected stream as too large (TPM exceeded). Forcing fallback to ${fallbackModel.modelId}.`
+              `Primary ${primaryModel.modelId} rejected stream as too large (TPM exceeded). Forcing fallback to ${fallbackModel.modelId}.`,
             );
-            const fallbackRelease = (await manager.acquireCapacityForModels(primaryModel, fallbackModel, estimatedTokens)).release;
+            const fallbackRelease = (
+              await manager.acquireCapacityForModels(
+                primaryModel,
+                fallbackModel,
+                estimatedTokens,
+              )
+            ).release;
             try {
               const fallbackResult = await fallbackModel.doStream(options);
 
               let fallbackActualTokens = estimatedTokens;
               let fallbackReleaseDone = false;
-              let fallbackReader: ReadableStreamDefaultReader<LanguageModelV4StreamPart> | undefined;
+              let fallbackReader:
+                | ReadableStreamDefaultReader<LanguageModelV4StreamPart>
+                | undefined;
 
               const fallbackFinishRelease = (tokens: number) => {
                 if (!fallbackReleaseDone) {
@@ -222,38 +272,42 @@ export function createRoutedLanguageModel(
                 }
               };
 
-              const fallbackWrappedStream = new ReadableStream<LanguageModelV4StreamPart>({
-                async start(controller) {
-                  fallbackReader = fallbackResult.stream.getReader();
-                  try {
-                    while (true) {
-                      const { done, value } = await fallbackReader.read();
-                      if (done) {
-                        controller.close();
-                        break;
+              const fallbackWrappedStream =
+                new ReadableStream<LanguageModelV4StreamPart>({
+                  async start(controller) {
+                    fallbackReader = fallbackResult.stream.getReader();
+                    try {
+                      while (true) {
+                        const { done, value } = await fallbackReader.read();
+                        if (done) {
+                          controller.close();
+                          break;
+                        }
+                        if (value.type === "finish" && value.usage) {
+                          fallbackActualTokens =
+                            extractTotalTokens(value.usage) ?? estimatedTokens;
+                        }
+                        controller.enqueue(value);
                       }
-                      if (value.type === "finish" && value.usage) {
-                        fallbackActualTokens = extractTotalTokens(value.usage) ?? estimatedTokens;
-                      }
-                      controller.enqueue(value);
+                      fallbackFinishRelease(fallbackActualTokens);
+                    } catch (streamErr) {
+                      fallbackFinishRelease(fallbackActualTokens);
+                      controller.error(streamErr);
                     }
+                  },
+                  cancel(reason) {
                     fallbackFinishRelease(fallbackActualTokens);
-                  } catch (streamErr) {
-                    fallbackFinishRelease(fallbackActualTokens);
-                    controller.error(streamErr);
-                  }
-                },
-                cancel(reason) {
-                  fallbackFinishRelease(fallbackActualTokens);
-                  if (fallbackReader) {
-                    return fallbackReader.cancel(reason);
-                  } else if (!fallbackResult.stream.locked) {
-                    return fallbackResult.stream.cancel(reason);
-                  }
-                },
-              });
+                    if (fallbackReader) {
+                      return fallbackReader.cancel(reason);
+                    } else if (!fallbackResult.stream.locked) {
+                      return fallbackResult.stream.cancel(reason);
+                    }
+                  },
+                });
 
-              gatewayLog(`${fallbackModel.modelId} stream ok (forced fallback)`);
+              gatewayLog(
+                `${fallbackModel.modelId} stream ok (forced fallback)`,
+              );
               return { ...fallbackResult, stream: fallbackWrappedStream };
             } catch (fallbackErr: unknown) {
               fallbackRelease(0);
@@ -266,13 +320,19 @@ export function createRoutedLanguageModel(
               `Primary ${primaryModel.modelId} quota/rate limit exhausted. Switching stream to ${fallbackModel.modelId}.`,
             );
             const fallbackRelease = (
-              await manager.acquireCapacityForModels(fallbackModel, fallbackModel, estimatedTokens)
+              await manager.acquireCapacityForModels(
+                fallbackModel,
+                fallbackModel,
+                estimatedTokens,
+              )
             ).release;
             try {
               const fallbackResult = await fallbackModel.doStream(options);
               let fallbackActualTokens = estimatedTokens;
               let fallbackReleaseDone = false;
-              let fallbackReader: ReadableStreamDefaultReader<LanguageModelV4StreamPart> | undefined;
+              let fallbackReader:
+                | ReadableStreamDefaultReader<LanguageModelV4StreamPart>
+                | undefined;
 
               const finishFallbackRelease = (tokens: number) => {
                 if (!fallbackReleaseDone) {
@@ -281,33 +341,36 @@ export function createRoutedLanguageModel(
                 }
               };
 
-              const fallbackStream = new ReadableStream<LanguageModelV4StreamPart>({
-                async start(controller) {
-                  fallbackReader = fallbackResult.stream.getReader();
-                  try {
-                    while (true) {
-                      const { done, value } = await fallbackReader.read();
-                      if (done) {
-                        controller.close();
-                        break;
+              const fallbackStream =
+                new ReadableStream<LanguageModelV4StreamPart>({
+                  async start(controller) {
+                    fallbackReader = fallbackResult.stream.getReader();
+                    try {
+                      while (true) {
+                        const { done, value } = await fallbackReader.read();
+                        if (done) {
+                          controller.close();
+                          break;
+                        }
+                        if (value.type === "finish" && value.usage) {
+                          fallbackActualTokens =
+                            extractTotalTokens(value.usage) ?? estimatedTokens;
+                        }
+                        controller.enqueue(value);
                       }
-                      if (value.type === "finish" && value.usage) {
-                        fallbackActualTokens = extractTotalTokens(value.usage) ?? estimatedTokens;
-                      }
-                      controller.enqueue(value);
+                      finishFallbackRelease(fallbackActualTokens);
+                    } catch (streamErr) {
+                      finishFallbackRelease(fallbackActualTokens);
+                      controller.error(streamErr);
                     }
+                  },
+                  cancel(reason) {
                     finishFallbackRelease(fallbackActualTokens);
-                  } catch (streamErr) {
-                    finishFallbackRelease(fallbackActualTokens);
-                    controller.error(streamErr);
-                  }
-                },
-                cancel(reason) {
-                  finishFallbackRelease(fallbackActualTokens);
-                  if (fallbackReader) return fallbackReader.cancel(reason);
-                  if (!fallbackResult.stream.locked) return fallbackResult.stream.cancel(reason);
-                },
-              });
+                    if (fallbackReader) return fallbackReader.cancel(reason);
+                    if (!fallbackResult.stream.locked)
+                      return fallbackResult.stream.cancel(reason);
+                  },
+                });
 
               return { ...fallbackResult, stream: fallbackStream };
             } catch (fallbackErr) {
@@ -326,7 +389,7 @@ export function createRoutedLanguageModel(
       }
 
       throw new Error(
-        `[LLM Gateway] Exceeded ${MAX_RATE_LIMIT_RETRIES} stream rate limit retry attempts for ${primaryModel.modelId}.`
+        `[LLM Gateway] Exceeded ${MAX_RATE_LIMIT_RETRIES} stream rate limit retry attempts for ${primaryModel.modelId}.`,
       );
     },
   };

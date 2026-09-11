@@ -297,7 +297,11 @@ export default telegramChannel({
         raw instanceof Error ? raw.message : typeof raw === "string" ? raw : "";
       // Specific, actionable errors — never a bare "Error occurred".
       let html: string;
-      if (/quota exceeded|current quota|free[_ -]?tier|generate_content_free_tier/i.test(msg)) {
+      if (
+        /quota exceeded|current quota|free[_ -]?tier|generate_content_free_tier/i.test(
+          msg,
+        )
+      ) {
         html =
           `<b>⚠️ AI provider quota exhausted.</b>\n\n` +
           `<i>The bot is temporarily out of model capacity. Please try again later, or ask the owner to check the Groq/Google AI quotas and billing settings.</i>`;
