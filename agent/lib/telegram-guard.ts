@@ -30,4 +30,3 @@ export function isTelegramUserAllowed(
   }
   return allow.has(String(userId).trim());
 }
-

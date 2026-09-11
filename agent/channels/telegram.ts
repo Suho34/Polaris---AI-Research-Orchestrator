@@ -5,9 +5,7 @@ import {
   markdownToTelegramHtml,
   safeTruncateMarkdown,
 } from "../lib/telegram-format.js";
-import {
-  isTelegramUserAllowed,
-} from "../lib/telegram-guard.js";
+import { isTelegramUserAllowed } from "../lib/telegram-guard.js";
 import { log } from "../lib/log.js";
 
 type ProgressState = {

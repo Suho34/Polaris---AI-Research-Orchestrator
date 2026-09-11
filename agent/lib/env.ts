@@ -7,12 +7,17 @@ import { z } from "zod";
 
 const envSchema = z.object({
   // Required for primary orchestrator, analyst, planner, writer routing
-  GROQ_API_KEY: z.string().min(1, "GROQ_API_KEY is missing. Required for primary model routing."),
+  GROQ_API_KEY: z
+    .string()
+    .min(1, "GROQ_API_KEY is missing. Required for primary model routing."),
 
   // Required for primary researcher (Gemma 4 31B) & fallback model routing
   GOOGLE_GENERATIVE_AI_API_KEY: z
     .string()
-    .min(1, "GOOGLE_GENERATIVE_AI_API_KEY is missing. Required for Gemma 4 31B and Gemini 3.5 Flash Lite."),
+    .min(
+      1,
+      "GOOGLE_GENERATIVE_AI_API_KEY is missing. Required for Gemma 4 31B and Gemini 3.5 Flash Lite.",
+    ),
 
   // Optional: Upstash Redis (falls back to in-process memory if not provided)
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
@@ -40,7 +45,10 @@ export type EnvConfig = z.infer<typeof envSchema>;
 
 /** True on Vercel production (or NODE_ENV=production). Used for fail-loud prod checks. */
 export function isProduction(): boolean {
-  return process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
+  return (
+    process.env.VERCEL_ENV === "production" ||
+    process.env.NODE_ENV === "production"
+  );
 }
 
 let parsedEnv: EnvConfig | null = null;
@@ -50,9 +58,16 @@ export function getEnv(): Partial<EnvConfig> {
 
   const result = envSchema.safeParse(process.env);
   if (!result.success) {
-    const formatted = result.error.issues.map((i) => `  - ${i.path.join(".")}: ${i.message}`).join("\n");
-    if (process.env.NODE_ENV === "test" || process.env.SKIP_ENV_VALIDATION === "true") {
-      console.warn(`\n⚠️ [Polaris Configuration Warning] Missing environment variables:\n${formatted}\n`);
+    const formatted = result.error.issues
+      .map((i) => `  - ${i.path.join(".")}: ${i.message}`)
+      .join("\n");
+    if (
+      process.env.NODE_ENV === "test" ||
+      process.env.SKIP_ENV_VALIDATION === "true"
+    ) {
+      console.warn(
+        `\n⚠️ [Polaris Configuration Warning] Missing environment variables:\n${formatted}\n`,
+      );
       return process.env as unknown as Partial<EnvConfig>;
     }
     // Actionable fail-fast: thrown at import time (models.ts), so the message
@@ -60,8 +75,12 @@ export function getEnv(): Partial<EnvConfig> {
     const remediation = isProduction()
       ? "Set them in the Vercel Dashboard (Project → Settings → Environment Variables) or via `vercel env add`, then redeploy."
       : "Add them to .env.local at the project root (see README Quick start), then restart `npm run dev`.";
-    console.error(`\n❌ [Polaris Configuration Error] Invalid or missing environment variables:\n${formatted}\n${remediation}\n`);
-    throw new Error(`[Polaris Configuration Error] Missing environment configuration:\n${formatted}\n${remediation}`);
+    console.error(
+      `\n❌ [Polaris Configuration Error] Invalid or missing environment variables:\n${formatted}\n${remediation}\n`,
+    );
+    throw new Error(
+      `[Polaris Configuration Error] Missing environment configuration:\n${formatted}\n${remediation}`,
+    );
   }
 
   parsedEnv = result.data;

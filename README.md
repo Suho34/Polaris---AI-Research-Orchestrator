@@ -51,7 +51,7 @@ The main boundaries are:
 | Layer        | Responsibility                                       | Location                                          |
 | ------------ | ---------------------------------------------------- | ------------------------------------------------- |
 | Channels     | Telegram webhook and Eve local/deployment access     | `agent/channels/`                                 |
-| Abuse guard  | Optional Telegram user allowlist                   | `agent/lib/telegram-guard.ts`                     |
+| Abuse guard  | Optional Telegram user allowlist                     | `agent/lib/telegram-guard.ts`                     |
 | Orchestrator | Clarification, delegation, validation, and synthesis | `agent/agent.ts`, `agent/instructions.md`         |
 | LLM gateway  | Capacity reservation, fallback routing, and retries  | `agent/lib/`                                      |
 | Specialists  | Research, planning, analysis, and writing            | `agent/subagents/`                                |
@@ -157,17 +157,17 @@ The gateway estimates prompt and tool tokens, reserves provider capacity, routes
 
 ### Environment variables
 
-| Variable                        | Required      | Description                                                  |
-| ------------------------------- | ------------- | ------------------------------------------------------------ |
-| `GROQ_API_KEY`                  | Yes           | Groq provider key                                            |
-| `GOOGLE_GENERATIVE_AI_API_KEY`  | Yes           | Google AI provider key                                       |
-| `TELEGRAM_BOT_TOKEN`            | Telegram      | Bot token                                                    |
-| `TELEGRAM_WEBHOOK_SECRET_TOKEN` | Telegram      | Secret used by the webhook                                   |
-| `TELEGRAM_ALLOWED_USER_IDS`     | Optional      | Comma-separated Telegram user IDs; empty means public access |
-| `UPSTASH_REDIS_REST_URL`        | Production    | Upstash REST endpoint                                        |
-| `UPSTASH_REDIS_REST_TOKEN`      | Production    | Upstash REST token                                           |
-| `TAVILY_API_KEY`                | Optional      | Primary web-search provider                                  |
-| `JINA_API_KEY`                  | Optional      | Search fallback and document retrieval provider              |
+| Variable                        | Required   | Description                                                  |
+| ------------------------------- | ---------- | ------------------------------------------------------------ |
+| `GROQ_API_KEY`                  | Yes        | Groq provider key                                            |
+| `GOOGLE_GENERATIVE_AI_API_KEY`  | Yes        | Google AI provider key                                       |
+| `TELEGRAM_BOT_TOKEN`            | Telegram   | Bot token                                                    |
+| `TELEGRAM_WEBHOOK_SECRET_TOKEN` | Telegram   | Secret used by the webhook                                   |
+| `TELEGRAM_ALLOWED_USER_IDS`     | Optional   | Comma-separated Telegram user IDs; empty means public access |
+| `UPSTASH_REDIS_REST_URL`        | Production | Upstash REST endpoint                                        |
+| `UPSTASH_REDIS_REST_TOKEN`      | Production | Upstash REST token                                           |
+| `TAVILY_API_KEY`                | Optional   | Primary web-search provider                                  |
+| `JINA_API_KEY`                  | Optional   | Search fallback and document retrieval provider              |
 
 Gateway overrides such as `GROQ_RPM_LIMIT`, `GROQ_TPM_LIMIT`, `GROQ_RPD_LIMIT`, `GROQ_TPD_LIMIT`, `GEMMA_RPM_LIMIT`, and `GEMMA_TPM_LIMIT` are also supported.
 
