@@ -1,8 +1,8 @@
 import { defineAgent } from "eve";
-import { mistral } from "@ai-sdk/mistral";
+import { writerModel, GROQ_CONTEXT_WINDOW_TOKENS } from "../../lib/models.js";
 
 export default defineAgent({
   description: "Writing specialist for synthesising reports, summaries, and polished documents from research and analysis outputs.",
-  model: mistral("mistral-small-2603"),
-  modelContextWindowTokens: 256000,
+  model: writerModel,
+  modelContextWindowTokens: GROQ_CONTEXT_WINDOW_TOKENS,
 });

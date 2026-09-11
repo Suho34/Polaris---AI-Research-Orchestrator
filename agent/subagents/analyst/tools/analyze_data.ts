@@ -9,25 +9,50 @@ export default defineTool({
     question: z.string().optional().describe("Specific analysis question to focus on"),
   }),
   async execute({ data, format, question }) {
+    // Edge-case guards: empty, oversized, binary-ish input
+    if (!data || !data.trim()) {
+      return { rows: 0, columns: [], note: "No data provided. Send CSV (header + rows) or a JSON array." };
+    }
+    const MAX_INPUT_CHARS = 500_000; // ~500KB — beyond this, ask for a sample, don't OOM
+    if (data.length > MAX_INPUT_CHARS) {
+      throw new Error(
+        `Dataset too large (${data.length} chars, max ${MAX_INPUT_CHARS}). Send a sample (first 500 rows) or aggregate first.`,
+      );
+    }
     let rows: Record<string, unknown>[] = [];
 
     const trimmed = data.trim();
     const detectedFormat = format ?? (trimmed.startsWith("[") || trimmed.startsWith("{") ? "json" : "csv");
 
     if (detectedFormat === "json") {
-      const parsed = JSON.parse(trimmed);
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(trimmed);
+      } catch {
+        throw new Error("Invalid JSON: could not parse. Check for trailing commas or unquoted keys.");
+      }
       rows = Array.isArray(parsed) ? (parsed as Record<string, unknown>[]) : [parsed as Record<string, unknown>];
     } else {
-      // Minimal CSV parser
+      // Minimal CSV parser with quoted-field support ("a,b",c)
       const lines = trimmed.split(/\r?\n/).filter((l) => l.trim().length > 0);
       if (lines.length < 2) throw new Error("CSV needs header + at least one row");
-      const headers = lines[0].split(",").map((h) => h.trim());
+      if (lines.length > 5000) {
+        throw new Error(`CSV has ${lines.length} lines (max 5000). Send a sample or pre-aggregate.`);
+      }
+      const splitCsvLine = (line: string): string[] => {
+        const matches = [...line.matchAll(/(?:^|,)(?:"((?:[^"]|"")*)"|([^,]*))/g)];
+        return matches.map((m) => (m[1] !== undefined ? m[1].replace(/""/g, '"') : m[2]).trim());
+      };
+      const headers = splitCsvLine(lines[0]);
+      if (new Set(headers).size !== headers.length) {
+        throw new Error("CSV has duplicate column names. Rename duplicates before analysis.");
+      }
       rows = lines.slice(1).map((line) => {
-        const vals = line.split(",").map((v) => v.trim());
+        const vals = splitCsvLine(line);
         const row: Record<string, unknown> = {};
         headers.forEach((h, i) => {
           const v = vals[i] ?? "";
-          const num = Number(v);
+          const num = Number(v.replace(/,/g, ""));
           row[h] = v !== "" && Number.isFinite(num) ? num : v;
         });
         return row;

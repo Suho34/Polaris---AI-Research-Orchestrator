@@ -1,7 +1,7 @@
 import { defineAgent } from "eve";
-import { mistral } from "@ai-sdk/mistral";
+import { orchestratorModel, GROQ_CONTEXT_WINDOW_TOKENS } from "./lib/models.js";
 
 export default defineAgent({
-  model: mistral("mistral-small-2603"),
-  modelContextWindowTokens: 256000,
+  model: orchestratorModel,
+  modelContextWindowTokens: GROQ_CONTEXT_WINDOW_TOKENS,
 });

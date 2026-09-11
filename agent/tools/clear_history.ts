@@ -12,7 +12,8 @@ export default defineTool({
     if (!confirm) {
       return {
         needsConfirm: true,
-        message: "Send confirm:true to clear this session's scratchpad and reset context.",
+        message:
+          "Send confirm:true to clear this session's scratchpad and reset context.",
       };
     }
     const sessionId = ctx.session.id;
@@ -23,7 +24,6 @@ export default defineTool({
       await scratchpadDelete(keyPart, { sessionId });
       deleted++;
     }
-    // Also clear global mirrored keys that match this session's prefix? Keep global for simplicity, but delete session-scoped
     return {
       cleared: true,
       deletedKeys: deleted,

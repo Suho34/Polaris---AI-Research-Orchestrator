@@ -2,27 +2,40 @@ import { defineMemory, defineMemoryProvider } from "eve/memory";
 import { scratchpadList, scratchpadRead } from "../lib/redis";
 
 // Redis-backed shared scratchpad memory provider for inter-agent context sharing.
-// Uses Upstash Redis when configured, otherwise the in-process fallback Map from lib/redis.
-// Scope is per-session (session.id) so each durable session shares a scratchpad
-// across orchestrator and subagents via explicit tool calls, but also recalls
-// automatically at turn start.
+// Token-efficient index recall: Injects an index of available keys and short previews
+// rather than full content dumps, protecting the 8K/16K TPM budget.
+// Full contents are fetched on-demand by agents via the `scratchpad` tool.
 
 const redisScratchpadProvider = defineMemoryProvider({
   recall: {
     "turn.started": async (ctx) => {
-      // ctx.memory.scope is opaque; we use session id directly for scratchpad namespace
       const sessionId = ctx.session.id;
       try {
         const { keys } = await scratchpadList({ sessionId });
         if (keys.length === 0) return null;
-        const messages = [];
-        for (const fullKey of keys.slice(0, 20)) {
-          // fullKey is e.g. polaris:<sessionId>:<key> – extract user key
-          const keyPart = fullKey.split(":").slice(2).join(":") || fullKey;
-          const { value } = await scratchpadRead(keyPart, { sessionId });
-          if (value) messages.push({ id: `scratchpad:${keyPart}`, content: `[scratchpad:${keyPart}] ${value.slice(0, 2000)}` });
+
+        const keyNames = keys.map((k) => k.split(":").slice(2).join(":") || k);
+        const previews: string[] = [];
+
+        // Sample short previews for at most 3 recent keys (max 150 chars each) to keep TPM < 200 tokens
+        for (const key of keyNames.slice(0, 3)) {
+          const { value } = await scratchpadRead(key, { sessionId });
+          if (value) {
+            const trimmed = value.trim().replace(/\s+/g, " ");
+            const snippet = trimmed.length > 150 ? trimmed.slice(0, 150) + "…" : trimmed;
+            previews.push(`- ${key}: "${snippet}"`);
+          }
         }
-        return messages.length ? { messages } : null;
+
+        let indexContent = `[scratchpad index] Available keys: ${keyNames.join(", ")}`;
+        if (previews.length > 0) {
+          indexContent += `\nRecent previews:\n${previews.join("\n")}`;
+        }
+        indexContent += `\n(Use the 'scratchpad' tool with operation="read" to retrieve full contents on demand).`;
+
+        return {
+          messages: [{ id: `scratchpad:index`, content: indexContent }],
+        };
       } catch {
         return null;
       }

@@ -1,8 +1,8 @@
 import { defineAgent } from "eve";
-import { mistral } from "@ai-sdk/mistral";
+import { analystModel, GROQ_CONTEXT_WINDOW_TOKENS } from "../../lib/models.js";
 
 export default defineAgent({
   description: "Analysis specialist for data analysis, calculations, quantitative reasoning, and interpreting datasets.",
-  model: mistral("mistral-medium-2508"),
-  modelContextWindowTokens: 128000,
+  model: analystModel,
+  modelContextWindowTokens: GROQ_CONTEXT_WINDOW_TOKENS,
 });

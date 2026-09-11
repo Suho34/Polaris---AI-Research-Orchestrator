@@ -1,8 +1,8 @@
 import { defineAgent } from "eve";
-import { mistral } from "@ai-sdk/mistral";
+import { plannerModel, GROQ_CONTEXT_WINDOW_TOKENS } from "../../lib/models.js";
 
 export default defineAgent({
   description: "Planning specialist for creating step-by-step plans, task breakdowns, and execution roadmaps.",
-  model: mistral("mistral-small-2603"),
-  modelContextWindowTokens: 256000,
+  model: plannerModel,
+  modelContextWindowTokens: GROQ_CONTEXT_WINDOW_TOKENS,
 });
