@@ -51,7 +51,7 @@ The main boundaries are:
 | Layer        | Responsibility                                       | Location                                          |
 | ------------ | ---------------------------------------------------- | ------------------------------------------------- |
 | Channels     | Telegram webhook and Eve local/deployment access     | `agent/channels/`                                 |
-| Abuse guard  | Allowlist, per-user limits, and public daily budget | `agent/lib/telegram-guard.ts`                     |
+| Abuse guard  | Allowlist, per-user limits, and public daily budget  | `agent/lib/telegram-guard.ts`                     |
 | Orchestrator | Clarification, delegation, validation, and synthesis | `agent/agent.ts`, `agent/instructions.md`         |
 | LLM gateway  | Capacity reservation, fallback routing, and retries  | `agent/lib/`                                      |
 | Specialists  | Research, planning, analysis, and writing            | `agent/subagents/`                                |
@@ -167,22 +167,22 @@ The gateway estimates prompt and tool tokens, reserves provider capacity, routes
 
 ### Environment variables
 
-| Variable                        | Required                | Description                                     |
-| ------------------------------- | ----------------------- | ----------------------------------------------- |
-| `GROQ_API_KEY`                  | Yes                     | Groq provider key                               |
-| `GOOGLE_GENERATIVE_AI_API_KEY`  | Yes                     | Google AI provider key                          |
-| `TELEGRAM_BOT_TOKEN`            | Telegram                | Bot token                                       |
-| `TELEGRAM_WEBHOOK_SECRET_TOKEN` | Telegram                | Secret used by the webhook                      |
-| `TELEGRAM_ALLOWED_USER_IDS`     | Optional                | Comma-separated Telegram user IDs; empty means public access |
-| `TELEGRAM_PUBLIC_RPD_LIMIT`     | Optional                | Shared public requests per day; default `100`   |
-| `TELEGRAM_PUBLIC_TRIAL_ENABLED` | Compatibility           | Legacy public-access flag                       |
-| `TELEGRAM_USER_RPM_LIMIT`       | Optional                | Per-user requests per minute; default `10`      |
-| `TELEGRAM_USER_RPD_LIMIT`       | Optional                | Per-user requests per day; default `200`        |
-| `TELEGRAM_TRIAL_RPD_LIMIT`      | Compatibility           | Legacy alias for `TELEGRAM_PUBLIC_RPD_LIMIT`    |
-| `UPSTASH_REDIS_REST_URL`        | Production              | Upstash REST endpoint                           |
-| `UPSTASH_REDIS_REST_TOKEN`      | Production              | Upstash REST token                              |
-| `TAVILY_API_KEY`                | Optional                | Primary web-search provider                     |
-| `JINA_API_KEY`                  | Optional                | Search fallback and document retrieval provider |
+| Variable                        | Required      | Description                                                  |
+| ------------------------------- | ------------- | ------------------------------------------------------------ |
+| `GROQ_API_KEY`                  | Yes           | Groq provider key                                            |
+| `GOOGLE_GENERATIVE_AI_API_KEY`  | Yes           | Google AI provider key                                       |
+| `TELEGRAM_BOT_TOKEN`            | Telegram      | Bot token                                                    |
+| `TELEGRAM_WEBHOOK_SECRET_TOKEN` | Telegram      | Secret used by the webhook                                   |
+| `TELEGRAM_ALLOWED_USER_IDS`     | Optional      | Comma-separated Telegram user IDs; empty means public access |
+| `TELEGRAM_PUBLIC_RPD_LIMIT`     | Optional      | Shared public requests per day; default `100`                |
+| `TELEGRAM_PUBLIC_TRIAL_ENABLED` | Compatibility | Legacy public-access flag                                    |
+| `TELEGRAM_USER_RPM_LIMIT`       | Optional      | Per-user requests per minute; default `10`                   |
+| `TELEGRAM_USER_RPD_LIMIT`       | Optional      | Per-user requests per day; default `200`                     |
+| `TELEGRAM_TRIAL_RPD_LIMIT`      | Compatibility | Legacy alias for `TELEGRAM_PUBLIC_RPD_LIMIT`                 |
+| `UPSTASH_REDIS_REST_URL`        | Production    | Upstash REST endpoint                                        |
+| `UPSTASH_REDIS_REST_TOKEN`      | Production    | Upstash REST token                                           |
+| `TAVILY_API_KEY`                | Optional      | Primary web-search provider                                  |
+| `JINA_API_KEY`                  | Optional      | Search fallback and document retrieval provider              |
 
 Gateway overrides such as `GROQ_RPM_LIMIT`, `GROQ_TPM_LIMIT`, `GROQ_RPD_LIMIT`, `GROQ_TPD_LIMIT`, `GEMMA_RPM_LIMIT`, and `GEMMA_TPM_LIMIT` are also supported.
 
@@ -240,8 +240,8 @@ logo-options/              Logo candidates
 | ----------------------------------- | --------------------------------------------------------------------------------- |
 | `404` from `GET /eve/v1/telegram`   | Expected; the Telegram webhook is POST-only                                       |
 | Telegram webhook returns `401`      | Secret token does not match `TELEGRAM_WEBHOOK_SECRET_TOKEN`                       |
-| Production users are rejected       | Check the shared public daily quota, per-user limits, or configured allowlist      |
-| Public requests are rejected        | Configure Upstash Redis and confirm the daily quota is not exhausted               |
+| Production users are rejected       | Check the shared public daily quota, per-user limits, or configured allowlist     |
+| Public requests are rejected        | Configure Upstash Redis and confirm the daily quota is not exhausted              |
 | Model calls return `429`            | Provider capacity is exhausted; the gateway retries and falls back where possible |
 | Scratchpad state disappears locally | Redis is not configured, so the development fallback is in-memory                 |
 
