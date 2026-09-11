@@ -1,0 +1,263 @@
+<svg viewBox="0 0 1200 740" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pol-arch2-title pol-arch2-desc">
+  <title id="pol-arch2-title">Polaris — System Architecture</title>
+  <desc id="pol-arch2-desc">Architecture of the Polaris AI Research Orchestrator: Telegram and Eve channels feed an orchestrator agent that delegates to four specialist subagents (researcher, planner, analyst, writer) through an LLM Gateway routing between Groq primary and Google AI fallback. A shared Upstash Redis scratchpad provides cross-agent state. External APIs include Tavily, Jina, and Upstash.</desc>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital@0;1&amp;family=Inter:wght@400;500;600&amp;family=Space+Mono:wght@400;700&amp;display=swap');
+    text { font-family: 'Inter', system-ui, sans-serif; }
+  </style>
+
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#526179"/></marker>
+    <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#b14a2f"/></marker>
+    <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f7ca5"/></marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#f4efe0"/>
+
+  <!-- Header -->
+  <text x="40" y="28" fill="#526179" font-size="8" font-family="'Space Mono', monospace"
+        font-weight="500" letter-spacing="0.18em">ARCHITECTURE</text>
+  <text x="40" y="56" fill="#202b3d" font-size="20" font-family="'Fraunces', Georgia, serif"
+        font-weight="600">Polaris — AI Research Orchestrator</text>
+
+  <!-- ============================================================ -->
+  <!-- ZONES                                                         -->
+  <!-- ============================================================ -->
+
+  <rect x="40" y="76" width="400" height="100" rx="8"
+        fill="rgba(32,43,61,0.02)" stroke="rgba(32,43,61,0.12)" stroke-width="0.8"/>
+  <rect x="68" y="80" width="80" height="12" rx="2" fill="#f4efe0"/>
+  <text x="108" y="89" fill="rgba(32,43,61,0.40)" font-size="7"
+        font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.14em">CHANNELS</text>
+
+  <rect x="456" y="76" width="704" height="212" rx="8"
+        fill="rgba(32,43,61,0.02)" stroke="rgba(32,43,61,0.12)" stroke-width="0.8"/>
+  <rect x="484" y="80" width="40" height="12" rx="2" fill="#f4efe0"/>
+  <text x="504" y="89" fill="rgba(32,43,61,0.40)" font-size="7"
+        font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.14em">CORE</text>
+
+  <rect x="40" y="380" width="1120" height="160" rx="8"
+        fill="rgba(32,43,61,0.02)" stroke="rgba(32,43,61,0.12)" stroke-width="0.8"/>
+  <rect x="68" y="384" width="128" height="12" rx="2" fill="#f4efe0"/>
+  <text x="132" y="393" fill="rgba(32,43,61,0.40)" font-size="7"
+        font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.14em">SPECIALIST SUBAGENTS</text>
+
+  <rect x="40" y="556" width="1120" height="100" rx="8"
+        fill="rgba(32,43,61,0.02)" stroke="rgba(32,43,61,0.12)" stroke-width="0.8"/>
+  <rect x="68" y="560" width="160" height="12" rx="2" fill="#f4efe0"/>
+  <text x="148" y="569" fill="rgba(32,43,61,0.40)" font-size="7"
+        font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.14em">SHARED STATE + EXTERNAL APIs</text>
+
+  <!-- ============================================================ -->
+  <!-- ARROWS                                                        -->
+  <!-- ============================================================ -->
+
+  <path d="M 200,176 V 192 Q 200,200 208,200 H 448"
+        fill="none" stroke="#4f7ca5" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+  <path d="M 360,176 V 192 Q 360,200 368,200 H 448"
+        fill="none" stroke="#526179" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <path d="M 688,200 H 872"
+        fill="none" stroke="#b14a2f" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+  <path d="M 944,252 V 276 Q 944,284 936,284 H 904"
+        fill="none" stroke="#b14a2f" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+  <path d="M 1008,252 V 276 Q 1008,284 1000,284 H 976"
+        fill="none" stroke="#526179" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <path d="M 464,232 V 264 Q 464,272 456,272 H 184"
+        fill="none" stroke="#526179" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <path d="M 496,232 V 264 Q 496,272 488,272 H 424"
+        fill="none" stroke="#526179" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <path d="M 528,232 V 264 Q 528,272 536,272 H 664"
+        fill="none" stroke="#526179" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <path d="M 560,232 V 264 Q 560,272 568,272 H 904"
+        fill="none" stroke="#526179" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <path d="M 592,232 V 264 Q 592,272 600,272 H 600 V 528 Q 600,536 592,536 H 536"
+        fill="none" stroke="#526179" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <path d="M 152,448 V 504 Q 152,512 160,512 H 384"
+        fill="none" stroke="#526179" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <path d="M 416,448 V 504 Q 416,512 424,512 H 448"
+        fill="none" stroke="#526179" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <path d="M 656,448 V 504 Q 656,512 648,512 H 560"
+        fill="none" stroke="#526179" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <path d="M 896,448 V 504 Q 896,512 888,512 H 664"
+        fill="none" stroke="#526179" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <path d="M 120,448 V 576 Q 120,584 128,584 H 760"
+        fill="none" stroke="#4f7ca5" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+  <path d="M 120,456 V 576 Q 120,584 128,584 H 920"
+        fill="none" stroke="#4f7ca5" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow-link)"/>
+
+  <!-- ============================================================ -->
+  <!-- ARROW LABELS                                                  -->
+  <!-- ============================================================ -->
+
+  <rect x="256" y="184" width="80" height="12" rx="2" fill="#f4efe0"/>
+  <text x="296" y="193" fill="#4f7ca5" font-size="8"
+        font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.06em">WEBHOOK</text>
+  <rect x="320" y="184" width="28" height="12" rx="2" fill="#f4efe0"/>
+  <text x="334" y="193" fill="#526179" font-size="8"
+        font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.06em">TUI</text>
+  <rect x="744" y="192" width="80" height="12" rx="2" fill="#f4efe0"/>
+  <text x="784" y="201" fill="#b14a2f" font-size="8"
+        font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.06em">ROUTING</text>
+  <rect x="908" y="264" width="64" height="12" rx="2" fill="#f4efe0"/>
+  <text x="940" y="273" fill="#b14a2f" font-size="8"
+        font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PRIMARY</text>
+  <rect x="976" y="264" width="64" height="12" rx="2" fill="#f4efe0"/>
+  <text x="1008" y="273" fill="#526179" font-size="8"
+        font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.06em">FALLBACK</text>
+  <rect x="296" y="264" width="104" height="12" rx="2" fill="#f4efe0"/>
+  <text x="348" y="273" fill="#526179" font-size="8"
+        font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.06em">DELEGATE</text>
+  <rect x="276" y="528" width="80" height="12" rx="2" fill="#f4efe0"/>
+  <text x="316" y="537" fill="#526179" font-size="8"
+        font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.06em">STATE</text>
+  <rect x="400" y="588" width="68" height="12" rx="2" fill="#f4efe0"/>
+  <text x="434" y="597" fill="#4f7ca5" font-size="8"
+        font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.06em">SEARCH</text>
+  <rect x="480" y="588" width="80" height="12" rx="2" fill="#f4efe0"/>
+  <text x="520" y="597" fill="#4f7ca5" font-size="8"
+        font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.06em">EXTRACT</text>
+
+  <!-- ============================================================ -->
+  <!-- NODES                                                         -->
+  <!-- ============================================================ -->
+
+  <!-- Telegram -->
+  <rect x="60" y="100" width="200" height="68" rx="6" fill="#f4efe0"/>
+  <rect x="60" y="100" width="200" height="68" rx="6" fill="rgba(82,97,121,0.10)" stroke="#59667c" stroke-width="1"/>
+  <rect x="68" y="108" width="28" height="12" rx="2" fill="transparent" stroke="rgba(89,102,124,0.40)" stroke-width="0.8"/>
+  <text x="82" y="117" fill="#59667c" font-size="7" font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.08em">EXT</text>
+  <text x="160" y="134" fill="#202b3d" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Telegram</text>
+  <text x="160" y="150" fill="#526179" font-size="9" font-family="'Space Mono', monospace" text-anchor="middle">@getpolaris_bot</text>
+  <text x="160" y="162" fill="rgba(32,43,61,0.40)" font-size="7" font-family="'Space Mono', monospace" text-anchor="middle">POST /eve/v1/telegram</text>
+
+  <!-- Eve TUI -->
+  <rect x="280" y="100" width="160" height="68" rx="6" fill="#f4efe0"/>
+  <rect x="280" y="100" width="160" height="68" rx="6" fill="rgba(32,43,61,0.03)" stroke="rgba(32,43,61,0.30)" stroke-width="1"/>
+  <rect x="288" y="108" width="32" height="12" rx="2" fill="transparent" stroke="rgba(32,43,61,0.22)" stroke-width="0.8"/>
+  <text x="304" y="117" fill="#59667c" font-size="7" font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.08em">EVE</text>
+  <text x="360" y="134" fill="#202b3d" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Eve TUI / Web</text>
+  <text x="360" y="150" fill="#526179" font-size="9" font-family="'Space Mono', monospace" text-anchor="middle">vercelOidc · localDev</text>
+  <text x="360" y="162" fill="rgba(32,43,61,0.40)" font-size="7" font-family="'Space Mono', monospace" text-anchor="middle">agent/channels/eve.ts</text>
+
+  <!-- Orchestrator (FOCAL) -->
+  <rect x="448" y="188" width="240" height="52" rx="6" fill="#f4efe0"/>
+  <rect x="448" y="188" width="240" height="52" rx="6" fill="rgba(177,74,47,0.08)" stroke="#b14a2f" stroke-width="1.2"/>
+  <rect x="456" y="196" width="36" height="12" rx="2" fill="transparent" stroke="rgba(177,74,47,0.50)" stroke-width="0.8"/>
+  <text x="474" y="205" fill="#b14a2f" font-size="7" font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.08em">ROOT</text>
+  <text x="568" y="214" fill="#202b3d" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Orchestrator</text>
+  <text x="568" y="232" fill="#526179" font-size="9" font-family="'Space Mono', monospace" text-anchor="middle">GPT-OSS 120B · Groq</text>
+
+  <!-- LLM Gateway (FOCAL) -->
+  <rect x="872" y="188" width="200" height="52" rx="6" fill="#f4efe0"/>
+  <rect x="872" y="188" width="200" height="52" rx="6" fill="rgba(177,74,47,0.08)" stroke="#b14a2f" stroke-width="1.2"/>
+  <rect x="880" y="196" width="36" height="12" rx="2" fill="transparent" stroke="rgba(177,74,47,0.50)" stroke-width="0.8"/>
+  <text x="898" y="205" fill="#b14a2f" font-size="7" font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.08em">GW</text>
+  <text x="972" y="214" fill="#202b3d" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">LLM Gateway</text>
+  <text x="972" y="232" fill="#526179" font-size="9" font-family="'Space Mono', monospace" text-anchor="middle">RPM · TPM · Fallback</text>
+
+  <!-- Groq -->
+  <rect x="864" y="284" width="88" height="44" rx="6" fill="#f4efe0"/>
+  <rect x="864" y="284" width="88" height="44" rx="6" fill="#ffffff" stroke="#202b3d" stroke-width="1"/>
+  <rect x="872" y="292" width="24" height="12" rx="2" fill="transparent" stroke="rgba(32,43,61,0.40)" stroke-width="0.8"/>
+  <text x="884" y="301" fill="#202b3d" font-size="7" font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.08em">API</text>
+  <text x="908" y="316" fill="#202b3d" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Groq</text>
+
+  <!-- Google AI -->
+  <rect x="960" y="284" width="88" height="44" rx="6" fill="#f4efe0"/>
+  <rect x="960" y="284" width="88" height="44" rx="6" fill="rgba(32,43,61,0.03)" stroke="rgba(32,43,61,0.30)" stroke-width="1"/>
+  <rect x="968" y="292" width="32" height="12" rx="2" fill="transparent" stroke="rgba(32,43,61,0.22)" stroke-width="0.8"/>
+  <text x="984" y="301" fill="#59667c" font-size="7" font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.08em">EXT</text>
+  <text x="1004" y="316" fill="#202b3d" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Google</text>
+
+  <!-- Researcher -->
+  <rect x="60" y="400" width="200" height="56" rx="6" fill="#f4efe0"/>
+  <rect x="60" y="400" width="200" height="56" rx="6" fill="#ffffff" stroke="#202b3d" stroke-width="1"/>
+  <rect x="68" y="408" width="28" height="12" rx="2" fill="transparent" stroke="rgba(32,43,61,0.40)" stroke-width="0.8"/>
+  <text x="82" y="417" fill="#202b3d" font-size="7" font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SUB</text>
+  <text x="160" y="428" fill="#202b3d" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Researcher</text>
+  <text x="160" y="444" fill="#526179" font-size="9" font-family="'Space Mono', monospace" text-anchor="middle">Gemma 4 31B</text>
+
+  <!-- Planner -->
+  <rect x="280" y="400" width="200" height="56" rx="6" fill="#f4efe0"/>
+  <rect x="280" y="400" width="200" height="56" rx="6" fill="#ffffff" stroke="#202b3d" stroke-width="1"/>
+  <rect x="288" y="408" width="28" height="12" rx="2" fill="transparent" stroke="rgba(32,43,61,0.40)" stroke-width="0.8"/>
+  <text x="302" y="417" fill="#202b3d" font-size="7" font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SUB</text>
+  <text x="380" y="428" fill="#202b3d" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Planner</text>
+  <text x="380" y="444" fill="#526179" font-size="9" font-family="'Space Mono', monospace" text-anchor="middle">GPT-OSS 20B</text>
+
+  <!-- Analyst -->
+  <rect x="520" y="400" width="200" height="56" rx="6" fill="#f4efe0"/>
+  <rect x="520" y="400" width="200" height="56" rx="6" fill="#ffffff" stroke="#202b3d" stroke-width="1"/>
+  <rect x="528" y="408" width="28" height="12" rx="2" fill="transparent" stroke="rgba(32,43,61,0.40)" stroke-width="0.8"/>
+  <text x="542" y="417" fill="#202b3d" font-size="7" font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SUB</text>
+  <text x="620" y="428" fill="#202b3d" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Analyst</text>
+  <text x="620" y="444" fill="#526179" font-size="9" font-family="'Space Mono', monospace" text-anchor="middle">GPT-OSS 120B</text>
+
+  <!-- Writer -->
+  <rect x="760" y="400" width="200" height="56" rx="6" fill="#f4efe0"/>
+  <rect x="760" y="400" width="200" height="56" rx="6" fill="#ffffff" stroke="#202b3d" stroke-width="1"/>
+  <rect x="768" y="408" width="28" height="12" rx="2" fill="transparent" stroke="rgba(32,43,61,0.40)" stroke-width="0.8"/>
+  <text x="782" y="417" fill="#202b3d" font-size="7" font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SUB</text>
+  <text x="860" y="428" fill="#202b3d" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Writer</text>
+  <text x="860" y="444" fill="#526179" font-size="9" font-family="'Space Mono', monospace" text-anchor="middle">GPT-OSS 20B</text>
+
+  <!-- Scratchpad -->
+  <rect x="384" y="532" width="240" height="44" rx="6" fill="#f4efe0"/>
+  <rect x="384" y="532" width="240" height="44" rx="6" fill="rgba(32,43,61,0.05)" stroke="#526179" stroke-width="1"/>
+  <rect x="392" y="540" width="36" height="12" rx="2" fill="transparent" stroke="rgba(82,97,121,0.50)" stroke-width="0.8"/>
+  <text x="410" y="549" fill="#526179" font-size="7" font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STORE</text>
+  <text x="504" y="560" fill="#202b3d" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Shared Scratchpad</text>
+  <text x="504" y="572" fill="#526179" font-size="9" font-family="'Space Mono', monospace" text-anchor="middle">Upstash Redis · in-memory fallback</text>
+
+  <!-- Tavily -->
+  <rect x="720" y="572" width="120" height="44" rx="6" fill="#f4efe0"/>
+  <rect x="720" y="572" width="120" height="44" rx="6" fill="rgba(32,43,61,0.03)" stroke="rgba(32,43,61,0.30)" stroke-width="1"/>
+  <rect x="728" y="580" width="28" height="12" rx="2" fill="transparent" stroke="rgba(32,43,61,0.22)" stroke-width="0.8"/>
+  <text x="742" y="589" fill="#59667c" font-size="7" font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.08em">EXT</text>
+  <text x="780" y="604" fill="#202b3d" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Tavily</text>
+
+  <!-- Jina -->
+  <rect x="880" y="572" width="120" height="44" rx="6" fill="#f4efe0"/>
+  <rect x="880" y="572" width="120" height="44" rx="6" fill="rgba(32,43,61,0.03)" stroke="rgba(32,43,61,0.30)" stroke-width="1"/>
+  <rect x="888" y="580" width="28" height="12" rx="2" fill="transparent" stroke="rgba(32,43,61,0.22)" stroke-width="0.8"/>
+  <text x="902" y="589" fill="#59667c" font-size="7" font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.08em">EXT</text>
+  <text x="940" y="604" fill="#202b3d" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Jina</text>
+
+  <!-- Upstash -->
+  <rect x="1040" y="572" width="100" height="44" rx="6" fill="#f4efe0"/>
+  <rect x="1040" y="572" width="100" height="44" rx="6" fill="rgba(32,43,61,0.03)" stroke="rgba(32,43,61,0.30)" stroke-width="1"/>
+  <rect x="1048" y="580" width="32" height="12" rx="2" fill="transparent" stroke="rgba(32,43,61,0.22)" stroke-width="0.8"/>
+  <text x="1064" y="589" fill="#59667c" font-size="7" font-family="'Space Mono', monospace" text-anchor="middle" letter-spacing="0.08em">EXT</text>
+  <text x="1090" y="604" fill="#202b3d" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Upstash</text>
+
+  <!-- Security boundary -->
+  <rect x="56" y="96" width="208" height="76" rx="6"
+        fill="none" stroke="rgba(177,74,47,0.25)" stroke-width="1" stroke-dasharray="6,4"/>
+
+  <!-- Legend -->
+  <line x1="40" y1="668" x2="1160" y2="668" stroke="rgba(32,43,61,0.12)" stroke-width="0.8"/>
+  <text x="40" y="684" fill="#526179" font-size="8" font-family="'Space Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+  <rect x="40" y="692" width="14" height="10" rx="2" fill="rgba(177,74,47,0.08)" stroke="#b14a2f" stroke-width="1"/>
+  <text x="60" y="700" fill="#526179" font-size="8.5" font-family="'Inter', sans-serif">Focal / routing</text>
+  <rect x="200" y="692" width="14" height="10" rx="2" fill="#ffffff" stroke="#202b3d" stroke-width="1"/>
+  <text x="220" y="700" fill="#526179" font-size="8.5" font-family="'Inter', sans-serif">Backend / API</text>
+  <rect x="368" y="692" width="14" height="10" rx="2" fill="rgba(32,43,61,0.05)" stroke="#526179" stroke-width="1"/>
+  <text x="388" y="700" fill="#526179" font-size="8.5" font-family="'Inter', sans-serif">Store</text>
+  <rect x="464" y="692" width="14" height="10" rx="2" fill="rgba(32,43,61,0.03)" stroke="rgba(32,43,61,0.30)" stroke-width="1"/>
+  <text x="484" y="700" fill="#526179" font-size="8.5" font-family="'Inter', sans-serif">External</text>
+  <rect x="576" y="692" width="14" height="10" rx="2" fill="rgba(82,97,121,0.10)" stroke="#59667c" stroke-width="1"/>
+  <text x="596" y="700" fill="#526179" font-size="8.5" font-family="'Inter', sans-serif">User-facing</text>
+  <line x1="704" y1="698" x2="732" y2="698" stroke="#4f7ca5" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+  <text x="740" y="700" fill="#526179" font-size="8.5" font-family="'Inter', sans-serif">HTTP / webhook</text>
+  <line x1="888" y1="698" x2="916" y2="698" stroke="#b14a2f" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+  <text x="924" y="700" fill="#526179" font-size="8.5" font-family="'Inter', sans-serif">Primary</text>
+  <line x1="1008" y1="698" x2="1036" y2="698" stroke="#526179" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <text x="1044" y="700" fill="#526179" font-size="8.5" font-family="'Inter', sans-serif">Fallback / state</text>
+
+  <!-- Colophon -->
+  <text x="1160" y="684" fill="rgba(32,43,61,0.25)" font-size="7"
+        font-family="'Space Mono', monospace" text-anchor="end">polaris · eve agent</text>
+
+</svg>
