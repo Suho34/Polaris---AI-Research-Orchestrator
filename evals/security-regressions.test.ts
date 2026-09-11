@@ -18,14 +18,14 @@ async function run() {
   process.env.NODE_ENV = "production";
   delete process.env.TELEGRAM_ALLOWED_USER_IDS;
   assert(
-    !isTelegramUserAllowed("attacker"),
-    "production denies an empty Telegram allowlist",
+    isTelegramUserAllowed("public-user"),
+    "an empty production allowlist permits public access",
   );
 
   process.env.TELEGRAM_PUBLIC_TRIAL_ENABLED = "true";
   assert(
     isPublicTrialEnabled(),
-    "public trial requires an explicit enable flag",
+    "legacy public trial flag is recognized for compatibility",
   );
   assert(
     isTelegramUserAllowed("trial-user"),
@@ -49,7 +49,7 @@ async function run() {
   delete process.env.VERCEL_ENV;
   delete process.env.TELEGRAM_ALLOWED_USER_IDS;
   process.env.TELEGRAM_PUBLIC_TRIAL_ENABLED = "true";
-  process.env.TELEGRAM_TRIAL_RPD_LIMIT = "1";
+  process.env.TELEGRAM_PUBLIC_RPD_LIMIT = "1";
   const firstTrialRequest = await checkTelegramRateLimit("trial-a", "chat-a");
   const secondTrialRequest = await checkTelegramRateLimit("trial-b", "chat-b");
   assert(

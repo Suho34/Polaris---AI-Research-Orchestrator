@@ -38,7 +38,7 @@ Polaris is useful for:
 - Automatic fallback and retry for provider limits
 - Telegram progress messages that update throughout a workflow
 - SSRF and response-size protections for document retrieval
-- Private production access or an explicitly enabled public trial mode
+- Public production access with a shared daily quota, or an optional user allowlist
 
 ## Architecture
 
@@ -51,7 +51,7 @@ The main boundaries are:
 | Layer        | Responsibility                                       | Location                                          |
 | ------------ | ---------------------------------------------------- | ------------------------------------------------- |
 | Channels     | Telegram webhook and Eve local/deployment access     | `agent/channels/`                                 |
-| Abuse guard  | Allowlist, per-user limits, and public trial budget  | `agent/lib/telegram-guard.ts`                     |
+| Abuse guard  | Allowlist, per-user limits, and public daily budget | `agent/lib/telegram-guard.ts`                     |
 | Orchestrator | Clarification, delegation, validation, and synthesis | `agent/agent.ts`, `agent/instructions.md`         |
 | LLM gateway  | Capacity reservation, fallback routing, and retries  | `agent/lib/`                                      |
 | Specialists  | Research, planning, analysis, and writing            | `agent/subagents/`                                |
@@ -115,29 +115,29 @@ npm run build
 
 ## Telegram
 
-### Private production access
+### Public production access
 
-Production access is closed by default. Add Telegram numeric user IDs as a comma-separated allowlist:
+Production access is public when `TELEGRAM_ALLOWED_USER_IDS` is empty. Every request consumes the shared daily public quota and the per-user limits:
+
+```bash
+TELEGRAM_PUBLIC_RPD_LIMIT=100
+TELEGRAM_USER_RPM_LIMIT=10
+TELEGRAM_USER_RPD_LIMIT=200
+```
+
+Upstash Redis is required in production so the shared quota survives serverless cold starts. Rate limiting fails closed if Redis is unavailable.
+
+### Optional private allowlist
+
+To restrict the bot to selected users, set a comma-separated list of Telegram numeric user IDs:
 
 ```bash
 TELEGRAM_ALLOWED_USER_IDS=123456789,987654321
 ```
 
-The bot applies limits per Telegram user, not per chat. Production rate limiting fails closed if Redis is unavailable.
+When an allowlist is configured, only those users can access the bot. The per-user limits still apply.
 
-### Public trial mode
-
-For a controlled public demo, explicitly enable the trial and leave the allowlist empty:
-
-```bash
-TELEGRAM_PUBLIC_TRIAL_ENABLED=true
-TELEGRAM_TRIAL_RPM_LIMIT=20
-TELEGRAM_TRIAL_RPD_LIMIT=100
-```
-
-Trial traffic must pass both the global trial budget and the per-user limits. Redis is required in production so the global budget survives serverless cold starts.
-
-Disable the trial by setting `TELEGRAM_PUBLIC_TRIAL_ENABLED=false` and redeploying.
+`TELEGRAM_PUBLIC_TRIAL_ENABLED` and the legacy `TELEGRAM_TRIAL_RPD_LIMIT` remain supported as compatibility aliases for the public daily budget.
 
 ### Webhook setup
 
@@ -173,12 +173,12 @@ The gateway estimates prompt and tool tokens, reserves provider capacity, routes
 | `GOOGLE_GENERATIVE_AI_API_KEY`  | Yes                     | Google AI provider key                          |
 | `TELEGRAM_BOT_TOKEN`            | Telegram                | Bot token                                       |
 | `TELEGRAM_WEBHOOK_SECRET_TOKEN` | Telegram                | Secret used by the webhook                      |
-| `TELEGRAM_ALLOWED_USER_IDS`     | Production unless trial | Comma-separated Telegram user IDs               |
-| `TELEGRAM_PUBLIC_TRIAL_ENABLED` | Optional                | Set `true` for public trial access              |
+| `TELEGRAM_ALLOWED_USER_IDS`     | Optional                | Comma-separated Telegram user IDs; empty means public access |
+| `TELEGRAM_PUBLIC_RPD_LIMIT`     | Optional                | Shared public requests per day; default `100`   |
+| `TELEGRAM_PUBLIC_TRIAL_ENABLED` | Compatibility           | Legacy public-access flag                       |
 | `TELEGRAM_USER_RPM_LIMIT`       | Optional                | Per-user requests per minute; default `10`      |
 | `TELEGRAM_USER_RPD_LIMIT`       | Optional                | Per-user requests per day; default `200`        |
-| `TELEGRAM_TRIAL_RPM_LIMIT`      | Optional                | Global trial requests per minute; default `20`  |
-| `TELEGRAM_TRIAL_RPD_LIMIT`      | Optional                | Global trial requests per day; default `100`    |
+| `TELEGRAM_TRIAL_RPD_LIMIT`      | Compatibility           | Legacy alias for `TELEGRAM_PUBLIC_RPD_LIMIT`    |
 | `UPSTASH_REDIS_REST_URL`        | Production              | Upstash REST endpoint                           |
 | `UPSTASH_REDIS_REST_TOKEN`      | Production              | Upstash REST token                              |
 | `TAVILY_API_KEY`                | Optional                | Primary web-search provider                     |
@@ -213,7 +213,7 @@ eve link --non-interactive --project <vercel-project>
 eve deploy --non-interactive --yes --project <vercel-project>
 ```
 
-Before production deployment, configure the required provider keys, Telegram webhook values, and Upstash Redis. Use the private allowlist unless you intentionally need the public trial mode.
+Before production deployment, configure the required provider keys, Telegram webhook values, and Upstash Redis. Public access is protected by the shared daily and per-user quotas; use the allowlist when the bot should be private.
 
 ## Project structure
 
@@ -240,8 +240,8 @@ logo-options/              Logo candidates
 | ----------------------------------- | --------------------------------------------------------------------------------- |
 | `404` from `GET /eve/v1/telegram`   | Expected; the Telegram webhook is POST-only                                       |
 | Telegram webhook returns `401`      | Secret token does not match `TELEGRAM_WEBHOOK_SECRET_TOKEN`                       |
-| Production users are rejected       | Add their IDs, or explicitly enable public trial mode                             |
-| Trial requests are rejected         | Configure Upstash Redis and confirm the trial limits are not exhausted            |
+| Production users are rejected       | Check the shared public daily quota, per-user limits, or configured allowlist      |
+| Public requests are rejected        | Configure Upstash Redis and confirm the daily quota is not exhausted               |
 | Model calls return `429`            | Provider capacity is exhausted; the gateway retries and falls back where possible |
 | Scratchpad state disappears locally | Redis is not configured, so the development fallback is in-memory                 |
 

@@ -14,8 +14,7 @@ import { log } from "./log.js";
 
 const DEFAULT_RPM = 10;
 const DEFAULT_RPD = 200;
-const DEFAULT_TRIAL_RPM = 20;
-const DEFAULT_TRIAL_RPD = 100;
+const DEFAULT_PUBLIC_RPD = 100;
 
 function isProduction(): boolean {
   return (
@@ -48,7 +47,7 @@ export function isTelegramUserAllowed(
   const allow = getAllowedUserIds();
   if (userId === undefined || userId === null || userId === "") return false;
   if (allow.size === 0) {
-    return !isProduction() || isPublicTrialEnabled();
+    return true;
   }
   return allow.has(String(userId).trim());
 }
@@ -79,7 +78,7 @@ function checkMemory(
       notice: `Daily limit reached (${rpd}/day). Try again tomorrow.`,
     };
   }
-  if (lastMin >= rpm) {
+  if (rpm > 0 && lastMin >= rpm) {
     return {
       allowed: false,
       retryAfterSec: 60,
@@ -126,7 +125,7 @@ async function checkStoredRateLimit(
         notice: `Daily limit reached (${rpd}/day). Try again tomorrow.`,
       };
     }
-    if (lastMin >= rpm) {
+    if (rpm > 0 && lastMin >= rpm) {
       return {
         allowed: false,
         retryAfterSec: 60,
@@ -177,15 +176,16 @@ export async function checkTelegramRateLimit(
   const now = Date.now();
   const context = { chatId, userId };
 
-  if (isPublicTrialEnabled()) {
-    const trialRpm =
-      Number(process.env.TELEGRAM_TRIAL_RPM_LIMIT) || DEFAULT_TRIAL_RPM;
-    const trialRpd =
-      Number(process.env.TELEGRAM_TRIAL_RPD_LIMIT) || DEFAULT_TRIAL_RPD;
+  const publicAccess = getAllowedUserIds().size === 0;
+  if (publicAccess) {
+    const publicRpd =
+      Number(process.env.TELEGRAM_PUBLIC_RPD_LIMIT) ||
+      Number(process.env.TELEGRAM_TRIAL_RPD_LIMIT) ||
+      DEFAULT_PUBLIC_RPD;
     const trialVerdict = await checkStoredRateLimit(
-      "ratelimit:trial:global",
-      trialRpm,
-      trialRpd,
+      "ratelimit:public:global",
+      0,
+      publicRpd,
       now,
       context,
     );
