@@ -44,6 +44,26 @@ function retryDelayFor(
   return waitMs;
 }
 
+async function generateWithFallback(
+  fallbackModel: LanguageModelV4,
+  options: LanguageModelV4CallOptions,
+  manager: LLMBudgetManager,
+  estimatedTokens: number,
+): Promise<LanguageModelV4GenerateResult> {
+  const fallbackRelease = (
+    await manager.acquireCapacityForModels(fallbackModel, fallbackModel, estimatedTokens)
+  ).release;
+  try {
+    const result = await fallbackModel.doGenerate(options);
+    fallbackRelease(extractTotalTokens(result.usage) ?? estimatedTokens);
+    gatewayLog(`${fallbackModel.modelId} generate ok (provider fallback)`);
+    return result;
+  } catch (fallbackErr) {
+    fallbackRelease(0);
+    throw fallbackErr;
+  }
+}
+
 /**
  * Creates a routed LanguageModelV4 that automatically applies the LLM Gateway
  * budget management, pre-dispatch reservation, and bidirectional fallback.
@@ -99,6 +119,13 @@ export function createRoutedLanguageModel(
               fallbackRelease(0);
               throw fallbackErr;
             }
+          }
+
+          if (isRateLimitError(err) && targetModel === primaryModel) {
+            gatewayLog(
+              `Primary ${primaryModel.modelId} quota/rate limit exhausted. Switching to ${fallbackModel.modelId}.`,
+            );
+            return generateWithFallback(fallbackModel, options, manager, estimatedTokens);
           }
 
           const waitMs = retryDelayFor(manager, targetModel, err, attempt);
@@ -229,6 +256,61 @@ export function createRoutedLanguageModel(
               gatewayLog(`${fallbackModel.modelId} stream ok (forced fallback)`);
               return { ...fallbackResult, stream: fallbackWrappedStream };
             } catch (fallbackErr: unknown) {
+              fallbackRelease(0);
+              throw fallbackErr;
+            }
+          }
+
+          if (isRateLimitError(err) && targetModel === primaryModel) {
+            gatewayLog(
+              `Primary ${primaryModel.modelId} quota/rate limit exhausted. Switching stream to ${fallbackModel.modelId}.`,
+            );
+            const fallbackRelease = (
+              await manager.acquireCapacityForModels(fallbackModel, fallbackModel, estimatedTokens)
+            ).release;
+            try {
+              const fallbackResult = await fallbackModel.doStream(options);
+              let fallbackActualTokens = estimatedTokens;
+              let fallbackReleaseDone = false;
+              let fallbackReader: ReadableStreamDefaultReader<LanguageModelV4StreamPart> | undefined;
+
+              const finishFallbackRelease = (tokens: number) => {
+                if (!fallbackReleaseDone) {
+                  fallbackRelease(tokens);
+                  fallbackReleaseDone = true;
+                }
+              };
+
+              const fallbackStream = new ReadableStream<LanguageModelV4StreamPart>({
+                async start(controller) {
+                  fallbackReader = fallbackResult.stream.getReader();
+                  try {
+                    while (true) {
+                      const { done, value } = await fallbackReader.read();
+                      if (done) {
+                        controller.close();
+                        break;
+                      }
+                      if (value.type === "finish" && value.usage) {
+                        fallbackActualTokens = extractTotalTokens(value.usage) ?? estimatedTokens;
+                      }
+                      controller.enqueue(value);
+                    }
+                    finishFallbackRelease(fallbackActualTokens);
+                  } catch (streamErr) {
+                    finishFallbackRelease(fallbackActualTokens);
+                    controller.error(streamErr);
+                  }
+                },
+                cancel(reason) {
+                  finishFallbackRelease(fallbackActualTokens);
+                  if (fallbackReader) return fallbackReader.cancel(reason);
+                  if (!fallbackResult.stream.locked) return fallbackResult.stream.cancel(reason);
+                },
+              });
+
+              return { ...fallbackResult, stream: fallbackStream };
+            } catch (fallbackErr) {
               fallbackRelease(0);
               throw fallbackErr;
             }
